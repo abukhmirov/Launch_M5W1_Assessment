@@ -40,7 +40,7 @@ namespace RecordCollection.Controllers
             _context.Albums.Add(album);
             _context.SaveChanges();
 
-            _logger.Information("this is the create action");
+            _logger.Information("Album " + album.Title + " created!");          //REWROTE THE LOGGER CONTENT TO BETTER SUIT THE LOG PURPOSE
 
             return RedirectToAction(nameof(Index));
         }
@@ -49,13 +49,35 @@ namespace RecordCollection.Controllers
         [Route("/albums/{id:int}")]
         public IActionResult Delete(int? id)
         {
+            if (id == null)
+            {
+                _logger.Warning("Album ID was null in Delete action.");
+                return NotFound();
+            }
+
             var album = _context.Albums.FirstOrDefault(a => a.Id == id);
-            _context.Albums.Remove(album);
-            _context.SaveChanges();
 
-            _logger.Fatal($"Success! {album.Title} was removed from the database.");
+            if (album == null)
+            {
+                _logger.Warning($"Attempted to delete non-existing album with ID: {id}");
+                return NotFound();
+            }
 
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.Albums.Remove(album);
+                _context.SaveChanges();
+
+                _logger.Information($"Success! {album.Title} was removed from the database.");
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                _logger.Fatal($"FATAL ERROR! Failed to delete album {album.Title}.");
+                return StatusCode(500);
+            }
+
         }
     }
 }

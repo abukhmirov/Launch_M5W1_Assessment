@@ -9,16 +9,26 @@ namespace RecordCollection.Controllers
     public class AlbumsAPIController : ControllerBase
     {
         private readonly RecordCollectionContext _context;
+        private readonly Serilog.ILogger _logger;
 
         public AlbumsAPIController(RecordCollectionContext context, Serilog.ILogger logger)
         {
             _context = context;
+            _logger = logger;
         }
-
+                                                //ADDED A TRY/CATCH FOR GETALL ALBUMS
         public IActionResult GetAll()
         {
+            try
+            {
             var albums = _context.Albums.ToList();
             return new JsonResult(albums);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Albums could not be fetched.");
+                return StatusCode(404);
+            }
         }
 
         [HttpGet("{id}")]
